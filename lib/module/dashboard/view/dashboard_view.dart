@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hyper_ui/core.dart';
+import 'package:flutter/services.dart';
+
+const MethodChannel channel = MethodChannel('com.imin.printersdk');
 
 class DashboardView extends StatefulWidget {
   DashboardView({Key? key}) : super(key: key);
@@ -13,9 +16,16 @@ class DashboardView extends StatefulWidget {
   static String? personInCharge;
   static String? remarks;
 
+// printing
+  ValueNotifier<String> stateNotifier = ValueNotifier("");
+  ValueNotifier<String> libsNotifier = ValueNotifier("");
+  ValueNotifier<String> scanNotifier = ValueNotifier("");
+
   Widget build(context, DashboardController controller) {
-    ValueNotifier<int> paxAdultNotifier = ValueNotifier<int>(0);
-    ValueNotifier<int> paxChildNotifier = ValueNotifier<int>(0);
+    ValueNotifier<int> paxAdultNotifier =
+        ValueNotifier<int>(controller.paxAdultValue);
+    ValueNotifier<int> paxChildNotifier =
+        ValueNotifier<int>(controller.paxChildValue);
 
     Color getColorFromText(String colorText) {
       switch (colorText.toLowerCase()) {
@@ -25,52 +35,55 @@ class DashboardView extends StatefulWidget {
           return Colors.green;
         case 'yellow':
           return Colors.yellow;
-        // Add more cases for other colors as needed
         default:
-          return Colors
-              .white; // Default color if the text doesn't match any known color
+          return Colors.white;
       }
     }
 
-    Future dialogPax(paxNotifier, name) => showDialog(
+    Future<void> dialogPax(
+        paxNotifier, name, incrementCallback, decrementCallback) async {
+      await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-              title: Text('$name Pax Qty'),
-              content: TextField(
-                onChanged: (value) {
-                  paxNotifier.value = int.tryParse(value) ?? 0;
-                },
-                controller:
-                    TextEditingController(text: paxNotifier.value.toString()),
-                autofocus: true,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(hintText: '0'),
+          title: Text('$name Pax Qty'),
+          content: TextField(
+            onChanged: (value) {
+              paxNotifier.value = int.tryParse(value) ?? 0;
+            },
+            controller:
+                TextEditingController(text: paxNotifier.value.toString()),
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(hintText: '0'),
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
               ),
-              actions: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey,
-                  ),
-                  onPressed: () {
-                    print(name);
-                    print(paxNotifier.value);
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("Submit"),
-                ),
-              ],
-            ));
+              onPressed: () {
+                print(name);
+                print(paxNotifier.value);
+                Navigator.of(context).pop();
+              },
+              child: const Text("Submit"),
+            ),
+          ],
+        ),
+      );
+    }
 
     controller.view = this;
+
     var vehicle_type = Builder(
       builder: (context) {
         List items = [
-          {"lable": "Parkir Roda 2"},
-          {"lable": "Parkir Roda 4"},
-          {"lable": "Parkir Roda 6"},
-          {"lable": "Walking"},
+          {"label": "Parkir Roda 2"},
+          {"label": "Parkir Roda 4"},
+          {"label": "Parkir Roda 6"},
+          {"label": "Walking"},
         ];
-        int selectedIndex = 0;
+
         return GridView.builder(
           padding: EdgeInsets.zero,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -84,20 +97,31 @@ class DashboardView extends StatefulWidget {
           physics: ScrollPhysics(),
           itemBuilder: (BuildContext context, int index) {
             var item = items[index];
-            return InkWell(
+
+            return GestureDetector(
               onTap: () {
-                vehicleType = item['lable'];
-                print(vehicleType);
+                controller.setSelectedVehicleTypeIndex(index);
+                controller.setVehicleType(item['label']);
+                vehicleType = item['label'];
+                print(item['label']);
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: controller.getSelectedVehicleTypeIndex() == index
+                      ? Colors.green
+                      : Colors.white,
+                  border: Border.all(
+                    color: controller.getSelectedVehicleTypeIndex() == index
+                        ? Colors.white
+                        : Colors.transparent,
+                    width: 2.0,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5), // Shadow color
-                      spreadRadius: 3, // Spread radius
-                      blurRadius: 3, // Blur radius
-                      offset: Offset(0, 3), // Offset
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 3,
+                      offset: Offset(0, 3),
                     ),
                   ],
                 ),
@@ -106,64 +130,7 @@ class DashboardView extends StatefulWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      item['lable'],
-                      style: TextStyle(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-    var vehicle_color_code = Builder(
-      builder: (context) {
-        List items = [
-          {"lable": "White On Black", "color": "white"},
-          {"lable": "Black On Yellow", "color": "yellow"},
-          {"lable": "White On Red", "color": "red"},
-          {"lable": "Others", "color": "green"},
-        ];
-        return GridView.builder(
-          padding: EdgeInsets.zero,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            childAspectRatio: 1.0,
-            crossAxisCount: 4,
-            mainAxisSpacing: 6,
-            crossAxisSpacing: 6,
-          ),
-          itemCount: items.length,
-          shrinkWrap: true,
-          physics: ScrollPhysics(),
-          itemBuilder: (BuildContext context, int index) {
-            var item = items[index];
-            return InkWell(
-              onTap: () {
-                vehicleColorCode = item['lable'];
-                print(vehicleColorCode);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: getColorFromText(item['color']),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5), // Shadow color
-                      spreadRadius: 3, // Spread radius
-                      blurRadius: 3, // Blur radius
-                      offset: Offset(0, 3), // Offset
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      item['lable'],
+                      item['label'],
                       style: TextStyle(
                         fontSize: 13.0,
                         fontWeight: FontWeight.bold,
@@ -178,8 +145,76 @@ class DashboardView extends StatefulWidget {
       },
     );
 
-    Widget buildPaxCard(
-        String title, String subtitle, ValueNotifier<int> paxNotifier) {
+    var vehicle_color_code = Builder(
+      builder: (context) {
+        List items = [
+          {"label": "White On Black", "color": "white"},
+          {"label": "Black On Yellow", "color": "yellow"},
+          {"label": "White On Red", "color": "red"},
+          {"label": "Others", "color": "green"},
+        ];
+
+        return GridView.builder(
+          padding: EdgeInsets.zero,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            childAspectRatio: 1.0,
+            crossAxisCount: 4,
+            mainAxisSpacing: 6,
+            crossAxisSpacing: 6,
+          ),
+          itemCount: items.length,
+          shrinkWrap: true,
+          physics: ScrollPhysics(),
+          itemBuilder: (BuildContext context, int index) {
+            var item = items[index];
+
+            return InkWell(
+              onTap: () {
+                controller.setSelectedVehicleColorIndex(index);
+                controller.setVehicleColorCode(item['label']);
+                vehicleColorCode = item['label'];
+                print(item['label']);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: getColorFromText(item['color']),
+                  border: Border.all(
+                    color: controller.getSelectedVehicleColorIndex() == index
+                        ? Colors.white
+                        : Colors.transparent,
+                    width: 2.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 3,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      item['label'],
+                      style: TextStyle(
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    Widget buildPaxCard(String title, String subtitle,
+        ValueNotifier<int> paxNotifier, incrementCallback, decrementCallback) {
       return Card(
         child: ListTile(
           title: Text(title),
@@ -194,9 +229,7 @@ class DashboardView extends StatefulWidget {
                   child: Center(
                     child: IconButton(
                       onPressed: () {
-                        if (paxNotifier.value > 0) {
-                          paxNotifier.value -= 1;
-                        }
+                        decrementCallback();
                       },
                       icon: Icon(
                         Icons.remove,
@@ -208,7 +241,8 @@ class DashboardView extends StatefulWidget {
                 ),
                 InkWell(
                   onTap: () {
-                    dialogPax(paxNotifier, title);
+                    dialogPax(paxNotifier, title, incrementCallback,
+                        decrementCallback);
                   },
                   child: Padding(
                     padding: EdgeInsets.all(12.0),
@@ -231,7 +265,7 @@ class DashboardView extends StatefulWidget {
                   child: Center(
                     child: IconButton(
                       onPressed: () {
-                        paxNotifier.value += 1;
+                        incrementCallback();
                       },
                       icon: Icon(
                         Icons.add,
@@ -262,7 +296,7 @@ class DashboardView extends StatefulWidget {
                     color: Colors.white,
                   ),
                 ),
-                child: Icon(MdiIcons.chatQuestion),
+                child: Icon(Icons.chat_bubble),
               ),
             ),
           ),
@@ -289,7 +323,6 @@ class DashboardView extends StatefulWidget {
             children: [
               QTextField(
                 label: "License Plate",
-                validator: Validator.required,
                 value: "",
                 onChanged: (value) {
                   licensePlate = value;
@@ -300,7 +333,6 @@ class DashboardView extends StatefulWidget {
               ),
               QDropdownField(
                 label: "Group Name",
-                validator: Validator.required,
                 items: [
                   {
                     "label": "Group 1",
@@ -365,10 +397,54 @@ class DashboardView extends StatefulWidget {
               const SizedBox(
                 height: 10.0,
               ),
-              buildPaxCard("Adult", "", paxAdultNotifier),
+              buildPaxCard("Adult", "", paxAdultNotifier,
+                  controller.incrementPaxAdult, controller.decrementPaxAdult),
 
               // Generate a dynamic card for Child Pax
-              buildPaxCard("Child", "", paxChildNotifier),
+              buildPaxCard("Child", "", paxChildNotifier,
+                  controller.incrementPaxChild, controller.decrementPaxChild),
+              QButton(
+                label: "init printer",
+                onPressed: () {},
+              ),
+              const SizedBox(
+                height: 10.0,
+              ),
+              QButton(
+                label: "Save",
+                onPressed: () async {
+                  await showDialog<void>(
+                    context: context,
+                    barrierDismissible: true,
+                    builder: (BuildContext context) {
+                      int paxChild = controller.paxChildValue;
+                      int paxAdult = controller.paxAdultValue;
+                      return AlertDialog(
+                        title: const Text('Info'),
+                        content: SingleChildScrollView(
+                          child: ListBody(
+                            children: <Widget>[
+                              Text(
+                                  'licenseplate : $licensePlate \n Groupname : $groupName Vehicle Type : $vehicleType \n Vehicle Color Code : $vehicleColorCode \n Child : $paxChild \n Adult $paxAdult '),
+                            ],
+                          ),
+                        ),
+                        actions: <Widget>[
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueGrey,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Ok"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
             ],
           ),
         ),
