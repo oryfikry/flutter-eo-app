@@ -13,6 +13,9 @@ class DashboardController extends State<DashboardView> {
 
   @override
   void dispose() => super.dispose();
+  void updateState(VoidCallback fn) {
+    setState(fn);
+  }
 
   @override
   Widget build(BuildContext context) => widget.build(context, this);

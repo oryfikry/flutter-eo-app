@@ -30,5 +30,6 @@ class LoginController extends State<LoginView> {
     showLoading();
     await AuthService().login(email: email!, password: password!);
     hideLoading();
+    Get.offAll(DashboardView());
   }
 }
