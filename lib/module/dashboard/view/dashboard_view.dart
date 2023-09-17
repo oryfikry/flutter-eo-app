@@ -294,7 +294,8 @@ class DashboardView extends StatefulWidget {
                   child: Column(
                     children: <Widget>[
                       Padding(
-                        padding: EdgeInsets.all(15.0),
+                        padding: const EdgeInsets.only(
+                            top: 20.0, right: 5.0, left: 5.0),
                         child: Text(
                           paxNotifier.toString(),
                           style: TextStyle(
