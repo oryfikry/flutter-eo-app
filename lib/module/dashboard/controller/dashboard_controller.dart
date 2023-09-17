@@ -52,6 +52,14 @@ class DashboardController extends State<DashboardView> {
     }
   }
 
+  int getQtyAdultNow() {
+    return paxAdultValue;
+  }
+
+  int getQtyChildNow() {
+    return paxChildValue;
+  }
+
   void setSelectedVehicleColorIndex(int index) {
     setState(() {
       selectedIndexVehicleColor = index;

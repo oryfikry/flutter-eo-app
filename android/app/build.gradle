@@ -35,6 +35,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+     lintOptions {
+        checkReleaseBuilds false
+        // Add more lint options here if needed
+    }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
@@ -61,6 +66,12 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+     sourceSets {
+        main {
+            jniLibs.srcDirs 'src/main/libs'
+            jni.srcDirs = []
+        }
+    }
 }
 
 flutter {
@@ -69,4 +80,6 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation files('libs/iminPrinterSDK.jar')
+    implementation files('libs/IminLibs1.0.15.jar')
 }

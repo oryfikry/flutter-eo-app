@@ -28,8 +28,40 @@ class LoginController extends State<LoginView> {
       return;
     }
     showLoading();
+    // var isSuccess =
+
     await AuthService().login(email: email!, password: password!);
     hideLoading();
+    // if (!isSuccess) {
+    //   await showDialog<void>(
+    //     context: context,
+    //     barrierDismissible: true,
+    //     builder: (BuildContext context) {
+    //       return AlertDialog(
+    //         title: const Text('Failed'),
+    //         content: const SingleChildScrollView(
+    //           child: ListBody(
+    //             children: <Widget>[
+    //               Text('Check your email or password'),
+    //             ],
+    //           ),
+    //         ),
+    //         actions: <Widget>[
+    //           ElevatedButton(
+    //             style: ElevatedButton.styleFrom(
+    //               backgroundColor: Colors.blueGrey,
+    //             ),
+    //             onPressed: () {
+    //               Navigator.pop(context);
+    //             },
+    //             child: const Text("Ok"),
+    //           ),
+    //         ],
+    //       );
+    //     },
+    //   );
+    //   return;
+    // }
     Get.offAll(DashboardView());
   }
 }

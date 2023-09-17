@@ -20,9 +20,10 @@ class AuthService {
       Map res = response.data;
       authToken = res['data']['access_token'];
       authData = res['data'];
-      print(res);
+      print({email, password});
       return true;
     } on Exception catch (err) {
+      print({email, password});
       print(err);
       return false;
     }

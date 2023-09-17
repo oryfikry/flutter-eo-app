@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hyper_ui/core.dart';
 import 'package:flutter/services.dart';
 
-const MethodChannel channel = MethodChannel('com.imin.printersdk');
+final MethodChannel channel = MethodChannel('com.imin.printersdk');
 
 class DashboardView extends StatefulWidget {
   DashboardView({Key? key}) : super(key: key);
@@ -16,17 +16,7 @@ class DashboardView extends StatefulWidget {
   static String? personInCharge;
   static String? remarks;
 
-// printing
-  ValueNotifier<String> stateNotifier = ValueNotifier("");
-  ValueNotifier<String> libsNotifier = ValueNotifier("");
-  ValueNotifier<String> scanNotifier = ValueNotifier("");
-
   Widget build(context, DashboardController controller) {
-    ValueNotifier<int> paxAdultNotifier =
-        ValueNotifier<int>(controller.paxAdultValue);
-    ValueNotifier<int> paxChildNotifier =
-        ValueNotifier<int>(controller.paxChildValue);
-
     Color getColorFromText(String colorText) {
       switch (colorText.toLowerCase()) {
         case 'red':
@@ -48,10 +38,9 @@ class DashboardView extends StatefulWidget {
           title: Text('$name Pax Qty'),
           content: TextField(
             onChanged: (value) {
-              paxNotifier.value = int.tryParse(value) ?? 0;
+              paxNotifier = int.tryParse(value) ?? 0;
             },
-            controller:
-                TextEditingController(text: paxNotifier.value.toString()),
+            controller: TextEditingController(text: paxNotifier.toString()),
             autofocus: true,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(hintText: '0'),
@@ -62,8 +51,16 @@ class DashboardView extends StatefulWidget {
                 backgroundColor: Colors.blueGrey,
               ),
               onPressed: () {
+                if (name == 'Adult') {
+                  controller.paxAdultValue = paxNotifier;
+                  controller.getQtyAdultNow();
+                } else {
+                  controller.paxChildValue = paxNotifier;
+                  controller.getQtyChildNow();
+                }
                 print(name);
-                print(paxNotifier.value);
+                print(paxNotifier);
+
                 Navigator.of(context).pop();
               },
               child: const Text("Submit"),
@@ -107,6 +104,7 @@ class DashboardView extends StatefulWidget {
               },
               child: Container(
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.0),
                   color: controller.getSelectedVehicleTypeIndex() == index
                       ? Colors.green
                       : Colors.white,
@@ -114,7 +112,7 @@ class DashboardView extends StatefulWidget {
                     color: controller.getSelectedVehicleTypeIndex() == index
                         ? Colors.white
                         : Colors.transparent,
-                    width: 2.0,
+                    width: 4.0,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -125,7 +123,7 @@ class DashboardView extends StatefulWidget {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(5.0),
+                padding: const EdgeInsets.all(8.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -177,12 +175,13 @@ class DashboardView extends StatefulWidget {
               },
               child: Container(
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.0),
                   color: getColorFromText(item['color']),
                   border: Border.all(
                     color: controller.getSelectedVehicleColorIndex() == index
-                        ? Colors.white
+                        ? Colors.black
                         : Colors.transparent,
-                    width: 2.0,
+                    width: 4.0,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -213,8 +212,8 @@ class DashboardView extends StatefulWidget {
       },
     );
 
-    Widget buildPaxCard(String title, String subtitle,
-        ValueNotifier<int> paxNotifier, incrementCallback, decrementCallback) {
+    Widget buildPaxCard(String title, String subtitle, int paxNotifier,
+        incrementCallback, decrementCallback) {
       return Card(
         child: ListTile(
           title: Text(title),
@@ -225,16 +224,17 @@ class DashboardView extends StatefulWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.blueGrey,
-                  radius: 12.0,
+                  radius: 17.0,
                   child: Center(
                     child: IconButton(
-                      onPressed: () {
+                      onPressed: () async {
                         decrementCallback();
+                        print(paxNotifier);
                       },
                       icon: Icon(
                         Icons.remove,
                         color: Colors.white,
-                        size: 9.0,
+                        size: 15.0,
                       ),
                     ),
                   ),
@@ -244,33 +244,33 @@ class DashboardView extends StatefulWidget {
                     dialogPax(paxNotifier, title, incrementCallback,
                         decrementCallback);
                   },
-                  child: Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: paxNotifier,
-                      builder: (context, value, child) {
-                        return Text(
-                          value.toString(),
+                  child: Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text(
+                          paxNotifier.toString(),
                           style: TextStyle(
                             fontSize: 14,
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 CircleAvatar(
                   backgroundColor: Colors.blueGrey,
-                  radius: 12.0,
+                  radius: 17.0,
                   child: Center(
                     child: IconButton(
                       onPressed: () {
                         incrementCallback();
+                        print(paxNotifier);
                       },
                       icon: Icon(
                         Icons.add,
                         color: Colors.white,
-                        size: 9.0,
+                        size: 15.0,
                       ),
                     ),
                   ),
@@ -286,34 +286,34 @@ class DashboardView extends StatefulWidget {
       appBar: AppBar(
         title: Text("Dashboard"),
         actions: [
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Center(
-              child: Badge(
-                label: Text(
-                  "6",
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-                child: Icon(Icons.chat_bubble),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Center(
-              child: Badge(
-                label: Text(
-                  "3",
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-                child: Icon(Icons.notifications),
-              ),
-            ),
-          ),
+          // Padding(
+          //   padding: EdgeInsets.all(8.0),
+          //   child: Center(
+          //     child: Badge(
+          //       label: Text(
+          //         "6",
+          //         style: TextStyle(
+          //           color: Colors.white,
+          //         ),
+          //       ),
+          //       child: Icon(Icons.chat_bubble),
+          //     ),
+          //   ),
+          // ),
+          // Padding(
+          //   padding: EdgeInsets.all(8.0),
+          //   child: Center(
+          //     child: Badge(
+          //       label: Text(
+          //         "3",
+          //         style: TextStyle(
+          //           color: Colors.white,
+          //         ),
+          //       ),
+          //       child: Icon(Icons.notifications),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
       body: SingleChildScrollView(
@@ -397,16 +397,47 @@ class DashboardView extends StatefulWidget {
               const SizedBox(
                 height: 10.0,
               ),
-              buildPaxCard("Adult", "", paxAdultNotifier,
+              buildPaxCard("Adult", "", controller.getQtyAdultNow(),
                   controller.incrementPaxAdult, controller.decrementPaxAdult),
 
               // Generate a dynamic card for Child Pax
-              buildPaxCard("Child", "", paxChildNotifier,
+              buildPaxCard("Child", "", controller.getQtyChildNow(),
                   controller.incrementPaxChild, controller.decrementPaxChild),
-              QButton(
-                label: "init printer",
-                onPressed: () {},
+              const SizedBox(
+                height: 10.0,
               ),
+              // clickBtn("init", () async {
+              //   stateNotifier.value = await channel.invokeMethod("sdkInit");
+              //   print(stateNotifier.value);
+              // }),
+              // clickBtn("getStatus", () async {
+              //   stateNotifier.value =
+              //       "getStatus : ${await channel.invokeMethod("getStatus")}";
+              //   print(stateNotifier.value);
+              // }),
+              // clickBtn("printText", () async {
+              //   stateNotifier.value = await channel.invokeMethod("printText", [
+              //     "iMin committed to use advanced technologies to help our business partners digitize their business.We are dedicated in becoming a leading provider of smart business equipment " +
+              //         "in ASEAN countries,assisting our partners to connect, create and utilize data effectively.\n"
+              //   ]);
+              // }),
+              // clickBtn("printBitmap", () async {
+              //   final ByteData bytes =
+              //       await rootBundle.load('assets/icon/icon.png');
+              //   //bytes.buffer.asUint8List();
+              //   stateNotifier.value = await channel.invokeMethod(
+              //       "printBitmap", {
+              //     'image': bytes.buffer.asUint8List(),
+              //     'type': 'image/png',
+              //     'name': 'icon.png'
+              //   });
+              // }),
+              // ValueListenableBuilder(
+              // valueListenable: stateNotifier,
+              // builder: (context, String value, child) {
+              //   return Text(value);
+              // }),
+
               const SizedBox(
                 height: 10.0,
               ),
@@ -448,6 +479,18 @@ class DashboardView extends StatefulWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget clickBtn(String title, VoidCallback? onPressed) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 20, left: 20),
+      child: MaterialButton(
+        onPressed: onPressed,
+        color: Colors.blue,
+        textColor: Colors.white,
+        child: Text(title),
       ),
     );
   }
