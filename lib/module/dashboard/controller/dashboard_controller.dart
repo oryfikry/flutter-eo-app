@@ -53,10 +53,16 @@ class DashboardController extends State<DashboardView> {
   }
 
   int getQtyAdultNow() {
+    setState(() {
+      paxAdultValue = paxAdultValue;
+    });
     return paxAdultValue;
   }
 
   int getQtyChildNow() {
+    setState(() {
+      paxChildValue = paxChildValue;
+    });
     return paxChildValue;
   }
 

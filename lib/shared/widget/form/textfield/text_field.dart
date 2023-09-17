@@ -12,25 +12,27 @@ class QTextField extends StatefulWidget {
   final int? maxLength;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
+  final bool? textCapitalization;
   final Function(String) onChanged;
   final Function(String)? onSubmitted;
 
-  const QTextField({
-    Key? key,
-    required this.label,
-    this.id,
-    this.value,
-    this.validator,
-    this.hint,
-    this.helper,
-    this.maxLength,
-    required this.onChanged,
-    this.onSubmitted,
-    this.obscure = false,
-    this.enabled = true,
-    this.prefixIcon,
-    this.suffixIcon,
-  }) : super(key: key);
+  const QTextField(
+      {Key? key,
+      required this.label,
+      this.id,
+      this.value,
+      this.validator,
+      this.hint,
+      this.helper,
+      this.maxLength,
+      required this.onChanged,
+      this.onSubmitted,
+      this.obscure = false,
+      this.enabled = true,
+      this.prefixIcon,
+      this.suffixIcon,
+      this.textCapitalization})
+      : super(key: key);
 
   @override
   State<QTextField> createState() => _QTextFieldState();
@@ -74,6 +76,11 @@ class _QTextFieldState extends State<QTextField> {
         controller: textEditingController,
         focusNode: focusNode,
         validator: widget.validator,
+        textCapitalization: widget.textCapitalization != null
+            ? widget.textCapitalization == true
+                ? TextCapitalization.characters
+                : TextCapitalization.none
+            : TextCapitalization.none,
         maxLength: widget.maxLength,
         obscureText: widget.obscure,
         decoration: InputDecoration(

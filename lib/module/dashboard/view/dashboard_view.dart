@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hyper_ui/core.dart';
 import 'package:flutter/services.dart';
@@ -58,8 +59,6 @@ class DashboardView extends StatefulWidget {
                   controller.paxChildValue = paxNotifier;
                   controller.getQtyChildNow();
                 }
-                print(name);
-                print(paxNotifier);
 
                 Navigator.of(context).pop();
               },
@@ -216,7 +215,56 @@ class DashboardView extends StatefulWidget {
         incrementCallback, decrementCallback) {
       return Card(
         child: ListTile(
-          title: Text(title),
+          title: Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Container(
+              width: 120,
+              child: Row(children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (title == 'Adult') {
+                      controller.paxAdultValue = paxNotifier + 10;
+                      controller.getQtyAdultNow();
+                    } else {
+                      controller.paxChildValue = paxNotifier + 10;
+                      controller.getQtyChildNow();
+                    }
+                  },
+                  child: const Text("+10"),
+                ),
+                const SizedBox(
+                  width: 5.0,
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (title == 'Adult') {
+                      controller.paxAdultValue = paxNotifier + 20;
+                      controller.getQtyAdultNow();
+                    } else {
+                      controller.paxChildValue = paxNotifier + 20;
+                      controller.getQtyChildNow();
+                    }
+                  },
+                  child: const Text("+20"),
+                ),
+                const SizedBox(
+                  width: 5.0,
+                ),
+              ])),
           trailing: SizedBox(
             width: 120.0,
             child: Row(
@@ -247,7 +295,7 @@ class DashboardView extends StatefulWidget {
                   child: Column(
                     children: <Widget>[
                       Padding(
-                        padding: EdgeInsets.all(12.0),
+                        padding: EdgeInsets.all(15.0),
                         child: Text(
                           paxNotifier.toString(),
                           style: TextStyle(
@@ -322,10 +370,11 @@ class DashboardView extends StatefulWidget {
           child: Column(
             children: [
               QTextField(
+                textCapitalization: true,
                 label: "License Plate",
                 value: "",
                 onChanged: (value) {
-                  licensePlate = value;
+                  licensePlate = value.toUpperCase();
                 },
               ),
               SizedBox(
@@ -441,43 +490,46 @@ class DashboardView extends StatefulWidget {
               const SizedBox(
                 height: 10.0,
               ),
-              QButton(
-                label: "Save",
-                onPressed: () async {
-                  await showDialog<void>(
-                    context: context,
-                    barrierDismissible: true,
-                    builder: (BuildContext context) {
-                      int paxChild = controller.paxChildValue;
-                      int paxAdult = controller.paxAdultValue;
-                      return AlertDialog(
-                        title: const Text('Info'),
-                        content: SingleChildScrollView(
-                          child: ListBody(
-                            children: <Widget>[
-                              Text(
-                                  'licenseplate : $licensePlate \n Groupname : $groupName Vehicle Type : $vehicleType \n Vehicle Color Code : $vehicleColorCode \n Child : $paxChild \n Adult $paxAdult '),
-                            ],
-                          ),
-                        ),
-                        actions: <Widget>[
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueGrey,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Ok"),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
             ],
           ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(10.0),
+        child: QButton(
+          label: "Save",
+          onPressed: () async {
+            await showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (BuildContext context) {
+                int paxChild = controller.paxChildValue;
+                int paxAdult = controller.paxAdultValue;
+                return AlertDialog(
+                  title: const Text('Info'),
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: <Widget>[
+                        Text(
+                            'licenseplate : $licensePlate \n Groupname : $groupName Vehicle Type : $vehicleType \n Vehicle Color Code : $vehicleColorCode \n Child : $paxChild \n Adult $paxAdult '),
+                      ],
+                    ),
+                  ),
+                  actions: <Widget>[
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueGrey,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Ok"),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
         ),
       ),
     );
