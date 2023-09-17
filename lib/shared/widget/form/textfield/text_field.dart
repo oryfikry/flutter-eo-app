@@ -31,7 +31,7 @@ class QTextField extends StatefulWidget {
       this.enabled = true,
       this.prefixIcon,
       this.suffixIcon,
-      this.textCapitalization})
+      this.textCapitalization = false})
       : super(key: key);
 
   @override
@@ -76,7 +76,7 @@ class _QTextFieldState extends State<QTextField> {
         controller: textEditingController,
         focusNode: focusNode,
         validator: widget.validator,
-        textCapitalization: widget.textCapitalization != null
+        textCapitalization: (widget.textCapitalization ?? false)
             ? widget.textCapitalization == true
                 ? TextCapitalization.characters
                 : TextCapitalization.none

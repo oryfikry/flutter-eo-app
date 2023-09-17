@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hyper_ui/core.dart';
 import 'package:flutter/services.dart';
@@ -521,6 +520,7 @@ class DashboardView extends StatefulWidget {
                         backgroundColor: Colors.blueGrey,
                       ),
                       onPressed: () {
+                        FocusScope.of(context).unfocus();
                         Navigator.pop(context);
                       },
                       child: const Text("Ok"),
